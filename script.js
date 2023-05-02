@@ -1,8 +1,9 @@
 
 ////////////IMPORT TRANING DATA
-import { TRAINING_DATA } from 'https://storage.googleapis.com/jmstore/TensorFlowJS/EdX/TrainingData/real-estate-data.js';
+import { TRAINING_DATA } from './resultsTriSuburb.js';
 //Input feature pairs (House size, number of bedrooms)
 const INPUTS = TRAINING_DATA.inputs;
+
 //Current listed house prices in dollars given their features above
 const OUTPUTS = TRAINING_DATA.outputs;;
 //Shuffle the two arrays in the same way so inputs still match outputs indexes
@@ -51,29 +52,41 @@ const model = tf.sequential();
 
 //one dense layer, 1 neuron and input of 2 features
 model.add(tf.layers.dense({
-	inputShape: [2],
+	inputShape: [5],
+	units: 100,
+	activation: 'relu'
+}));
+
+model.add(tf.layers.dense({
+	units: 100,
+	activation: 'relu'
+}))
+
+model.add(tf.layers.dense({
 	units: 1,
 }));
 
 model.summary();
+const LEARNING_RATE = 0.0000000009;
+const OPTIMIZER = tf.train.sgd(LEARNING_RATE);
 
 train();
 
 async function train() {
-	const LEARNING_RATE = 0.01;
 
 	//Compile model with the learning rate and specify a loss function to use
 	model.compile({
-		optimizer: tf.train.sgd(LEARNING_RATE),
+		optimizer: OPTIMIZER,
 		loss: 'meanSquaredError'
 	});
 
 	//Do the training
 	let results = await model.fit(FEATURE_RESULTS.NORMALIZED_VALUES, OUTPUTS_TENSOR, {
+		callbacks: { onEpochEnd: logProgress },
 		validationSplit: 0.15, //Use 15% of data for validation
 		shuffle: true, //Ensure data is shuffled
-		batchSize: 32, //Use batch sizes of 64
-		epochs: 20 //Go over the data 10 times
+		batchSize: 64, //Use batch sizes of 64
+		epochs: 50 //Go over the data 10 times
 	});
 
 	OUTPUTS_TENSOR.dispose();
@@ -88,7 +101,7 @@ async function train() {
 function evaluate() {
 	//predict answer for a single piece of data
 	tf.tidy(function() {
-		let newInput = normalize(tf.tensor2d([[750, 1]]), FEATURE_RESULTS.MIN_VALUES, FEATURE_RESULTS.MAX_VALUES
+		let newInput = normalize(tf.tensor5d([[1, 3, 1, 1, 800]]), FEATURE_RESULTS.MIN_VALUES, FEATURE_RESULTS.MAX_VALUES
 		);
 		let output = model.predict(newInput.NORMALIZED_VALUES);
 		output.print();
@@ -99,4 +112,11 @@ function evaluate() {
 	model.dispose();
 
 	console.log(tf.memory().numTensors);
+}
+
+function logProgress(epoch, logs) {
+	console.log('Data for epoch ' + epoch, Math.sqrt(logs.loss));
+	if (epoch == 200) {
+		OPTIMIZER.setLearningRate(LEARNING_RATE / 2)
+	}
 }
