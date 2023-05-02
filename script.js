@@ -10,7 +10,7 @@ const OUTPUTS = TRAINING_DATA.outputs;;
 tf.util.shuffleCombo(INPUTS, OUTPUTS)
 
 ////////CREATE TENSORS
-const INPUTS_TENSOR = tf.tensor2d(INPUTS);
+const INPUTS_TENSOR = tf.tensor2d(INPUTS)
 const OUTPUTS_TENSOR = tf.tensor1d(OUTPUTS);
 
 //Normalise Tensors
