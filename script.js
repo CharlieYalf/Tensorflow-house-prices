@@ -7,6 +7,28 @@ const INPUTS = TRAINING_DATA.inputs;
 //Current listed house prices in dollars given their features above
 const OUTPUTS = TRAINING_DATA.outputs;;
 //Shuffle the two arrays in the same way so inputs still match outputs indexes
+
+//CREATE PLOTLY GRAPHS
+const HOUSE_TYPES = ['House', 'Townhouse', 'Other'];
+const names = ['type', 'beds', 'baths', 'cars', 'sqm'];
+// For each input data point, create a separate graph
+for (let i = 0; i < INPUTS[0].length; ++i) {
+	const x = INPUTS.map(input => input[i]);
+	const trace = {
+		x: x,
+		y: OUTPUTS,
+		mode: 'markers',
+		name: names[i]
+	};
+	const data = [trace];
+	const layout = {
+		xaxis: { title: names[i] },
+		yaxis: { title: 'Price' }
+	};
+	// Create a separate graph for each input data point
+	Plotly.newPlot(`chart${i}`, data, layout);
+}
+
 tf.util.shuffleCombo(INPUTS, OUTPUTS)
 
 ////////CREATE TENSORS
@@ -101,7 +123,7 @@ async function train() {
 function evaluate() {
 	//predict answer for a single piece of data
 	tf.tidy(function() {
-		let newInput = normalize(tf.tensor5d([[1, 3, 1, 1, 800]]), FEATURE_RESULTS.MIN_VALUES, FEATURE_RESULTS.MAX_VALUES
+		let newInput = normalize(tf.tensor2d([[1, 3, 1, 1, 800]]), FEATURE_RESULTS.MIN_VALUES, FEATURE_RESULTS.MAX_VALUES
 		);
 		let output = model.predict(newInput.NORMALIZED_VALUES);
 		output.print();
