@@ -89,8 +89,8 @@ model.add(tf.layers.dense({
 }));
 
 model.summary();
-const LEARNING_RATE = 0.0000000009;
-const OPTIMIZER = tf.train.sgd(LEARNING_RATE);
+const LEARNING_RATE = 0.1;
+const OPTIMIZER = tf.train.adam();
 
 train();
 
@@ -105,10 +105,10 @@ async function train() {
 	//Do the training
 	let results = await model.fit(FEATURE_RESULTS.NORMALIZED_VALUES, OUTPUTS_TENSOR, {
 		callbacks: { onEpochEnd: logProgress },
-		validationSplit: 0.15, //Use 15% of data for validation
+		validationSplit: 0.10, //Use 15% of data for validation
 		shuffle: true, //Ensure data is shuffled
-		batchSize: 64, //Use batch sizes of 64
-		epochs: 50 //Go over the data 10 times
+		batchSize: 16, //Use batch sizes of 64
+		epochs: 100 //Go over the data 10 times
 	});
 
 	OUTPUTS_TENSOR.dispose();
@@ -123,7 +123,7 @@ async function train() {
 function evaluate() {
 	//predict answer for a single piece of data
 	tf.tidy(function() {
-		let newInput = normalize(tf.tensor2d([[1, 3, 1, 1, 800]]), FEATURE_RESULTS.MIN_VALUES, FEATURE_RESULTS.MAX_VALUES
+		let newInput = normalize(tf.tensor2d([[1, 3, 1, 1, 500]]), FEATURE_RESULTS.MIN_VALUES, FEATURE_RESULTS.MAX_VALUES
 		);
 		let output = model.predict(newInput.NORMALIZED_VALUES);
 		output.print();
@@ -139,6 +139,6 @@ function evaluate() {
 function logProgress(epoch, logs) {
 	console.log('Data for epoch ' + epoch, Math.sqrt(logs.loss));
 	if (epoch == 200) {
-		OPTIMIZER.setLearningRate(LEARNING_RATE / 2)
+		OPTIMIZER.learningRate = LEARNING_RATE / 2
 	}
 }
